@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitTrack Pro | Advanced Fitness Logger</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #0b1120; color: #f8fafc; display: flex; min-height: 100vh; }
+    .sidebar { width: 260px; background: #1e293b; padding: 2rem 1rem; border-right: 1px solid #334155; }
+    .sidebar h1 { color: #f43f5e; font-size: 1.5rem; margin-bottom: 2rem; text-align: center; font-weight: 800; }
+    .nav-btn { display: block; width: 100%; text-align: left; background: transparent; border: none; color: #94a3b8; padding: 1rem; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: 0.2s; margin-bottom: 0.5rem; font-weight: 600; }
+    .nav-btn:hover, .nav-btn.active { background: #f43f5e; color: white; }
+    .main { flex: 1; padding: 3rem; max-width: 1000px; margin: 0 auto; }
+    .section { display: none; }
+    .section.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    h2 { font-size: 2rem; margin-bottom: 1.5rem; color: #f8fafc; border-bottom: 2px solid #334155; padding-bottom: 0.5rem; }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: #1e293b; padding: 1.5rem; border-radius: 12px; text-align: center; border: 1px solid #334155; }
+    .stat-card h3 { font-size: 2rem; color: #f43f5e; }
+    .stat-card p { color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; margin-top: 0.5rem; }
+    
+    .form-card, .table-card { background: #1e293b; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #334155; }
+    input, select { width: 100%; padding: 1rem; background: #0b1120; border: 1px solid #334155; border-radius: 8px; color: white; margin-bottom: 1rem; outline: none; }
+    input:focus, select:focus { border-color: #f43f5e; }
+    
+    .btn { background: #f43f5e; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.2s; }
+    .btn:hover { background: #e11d48; }
+    
+    .nav-actions { display: flex; justify-content: space-between; gap: 1rem; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #334155; }
+    .btn-back { background: #334155; color: white; width: 48%; }
+    .btn-back:hover { background: #475569; }
+    .btn-next { background: #f43f5e; color: white; width: 48%; }
+    .btn-next:hover { background: #e11d48; }
+    .btn-finish { background: #22c55e; color: white; width: 100%; }
+    .btn-finish:hover { background: #16a34a; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #334155; font-size: 0.9rem; }
+    th { color: #f43f5e; text-transform: uppercase; }
+    .delete-btn { background: #ef4444; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; }
+
+    .guide-box { display: flex; gap: 1rem; margin-bottom: 2rem; }
+    .guide-card { flex: 1; background: #1e293b; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #f43f5e; }
+    .guide-card.cool { border-left-color: #38bdf8; }
+    .guide-card h4 { margin-bottom: 1rem; font-size: 1.1rem; }
+    .guide-card ul { list-style: none; color: #cbd5e1; font-size: 0.9rem; line-height: 1.8; }
+    .guide-card li::before { content: "✔"; color: #f43f5e; margin-right: 8px; }
+    .guide-card.cool li::before { color: #38bdf8; }
+
+    .advisor-box { background: linear-gradient(135deg, rgba(244,63,94,0.2), rgba(139,92,246,0.2)); border: 1px solid #f43f5e; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; }
+    .advisor-box h3 { color: #f43f5e; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .advisor-box ul { margin-left: 1.5rem; color: #cbd5e1; line-height: 1.8; }
+    .advisor-box strong { color: white; }
+
+    .schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .schedule-col { background: #1e293b; padding: 1.5rem; border-radius: 12px; border-top: 4px solid #f43f5e; }
+    .schedule-col h3 { text-align: center; margin-bottom: 1rem; color: #f8fafc; }
+    .schedule-item { background: #0b1120; padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; }
+
+    .bmi-result { text-align: center; padding: 2rem; border-radius: 12px; margin-bottom: 1.5rem; }
+    .bmi-result h1 { font-size: 4rem; margin-bottom: 0.5rem; }
+    .daily-plan { background: #1e293b; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #38bdf8; margin-bottom: 1rem;}
+
+    .exercise-card { background: #0b1120; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1.5rem; }
+    .exercise-img { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; border: 2px solid #f43f5e; flex-shrink: 0; cursor: pointer; transition: transform 0.2s; background: #1e293b; }
+    .exercise-img:hover { transform: scale(1.05); }
+    .exercise-info h4 { color: #f8fafc; font-size: 1.2rem; margin-bottom: 0.3rem; }
+    .exercise-info p { color: #94a3b8; font-size: 0.9rem; line-height: 1.4; }
+
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(5px); }
+    .modal-content { max-width: 90%; max-height: 90%; border-radius: 12px; border: 4px solid #f43f5e; box-shadow: 0 0 30px rgba(244, 63, 94, 0.5); animation: zoomIn 0.3s ease; background: #1e293b; padding: 2rem; }
+    @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .food-preview-container { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1rem; background: #0b1120; padding: 1rem; border-radius: 8px; border: 1px solid #334155; }
+    .food-preview-img { width: 100px; height: 100px; object-fit: cover; border-radius: 12px; border: 2px solid #f43f5e; }
+    .food-preview-text strong { font-size: 1.2rem; color: #f8fafc; display: block; margin-bottom: 0.3rem;}
+    .food-preview-text span { color: #cbd5e1; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <h1>🏋️ FitTrack Pro</h1>
+    <button class="nav-btn active" onclick="showSection('dashboard', this)">📊 Dashboard</button>
+    <button class="nav-btn" onclick="showSection('workouts', this)">💪 Workouts</button>
+    <button class="nav-btn" onclick="showSection('schedule', this)">🗓️ Sport Schedule</button>
+    <button class="nav-btn" onclick="showSection('nutrition', this)">🥗 Nutrition</button>
+    <button class="nav-btn" onclick="showSection('progress', this)">📈 Progress</button>
+    <button class="nav-btn" onclick="showSection('health', this)">❤️ Health & BMI</button>
+</aside>
+
+<main class="main">
+    <section id="dashboard" class="section active">
+        <h2>Overview</h2>
+        <div class="stats-grid">
+            <div class="stat-card"><h3 id="stWorkouts">0</h3><p>Workouts</p></div>
+            <div class="stat-card"><h3 id="stVolume">0 kg</h3><p>Volume Lifted</p></div>
+            <div class="stat-card"><h3 id="stCalories">0</h3><p>Calories Eaten</p></div>
+            <div class="stat-card"><h3 id="stSize">0 KB</h3><p>DB Size</p></div>
+        </div>
+        <div class="nav-actions">
+            <button class="btn btn-next" style="width: 100%;" onclick="navigateTo('workouts', 1)">Continue to Workouts ➔</button>
+        </div>
+    </section>
+
+    <section id="workouts" class="section">
+        <h2>Log Workout</h2>
+        <div class="guide-box">
+            <div class="guide-card">
+                <h4>🔥 Warm-up (NHS: 10-15 Mins)</h4>
+                <ul>
+                    <li>5 mins light cardio (brisk walk/jog)</li>
+                    <li>Dynamic stretching: leg swings, high knees</li>
+                    <li>Sport-specific movement drills</li>
+                </ul>
+            </div>
+            <div class="guide-card cool">
+                <h4>❄️ Cool-down (NHS: 5-10 Mins)</h4>
+                <ul>
+                    <li>Gradually reduce pace (jog to walk)</li>
+                    <li>Static stretches (hold 30s each)</li>
+                    <li>Rehydrate with water/electrolytes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <select id="wType" onchange="updateAdvisor()">
+                <option value="Strength">Strength (Muscle Building)</option>
+                <option value="Cardio">Cardio (Fat Loss)</option>
+                <option value="Flexibility">Flexibility (Recovery)</option>
+            </select>
+            <input type="text" id="wExercise" placeholder="Exercise Name (e.g., Bench Press)" />
+            <div style="display:flex; gap:1rem;">
+                <input type="number" id="wWeight" placeholder="Weight (kg)" />
+                <input type="number" id="wReps" placeholder="Reps" />
+                <input type="number" id="wSets" placeholder="Sets" />
+            </div>
+            <div style="display:flex; gap:1rem;">
+                <input type="number" id="wDuration" placeholder="Duration (mins)" />
+                <input type="number" id="wCaloriesBurned" placeholder="Calories Burned" />
+            </div>
+            <select id="wTime">
+                <option value="Morning">Morning</option>
+                <option value="Afternoon">Afternoon</option>
+                <option value="Evening">Evening</option>
+            </select>
+            <button class="btn" onclick="addWorkout()">Save Workout</button>
+        </div>
+
+        <div class="advisor-box">
+            <h3>💡 Smart Nutrition Advisor (WHO/ACSM)</h3>
+            <div id="advisorContent"></div>
+        </div>
+
+        <div class="table-card">
+            <h3 style="margin-bottom:1rem;">Workout History</h3>
+            <table>
+                <thead><tr><th>Type</th><th>Exercise</th><th>Details</th><th>Time</th><th>Action</th></tr></thead>
+                <tbody id="workoutTable"></tbody>
+            </table>
+        </div>
+
+        <div class="nav-actions">
+            <button class="btn btn-back" onclick="navigateTo('dashboard', 0)">⬅ Back</button>
+            <button class="btn btn-next" onclick="navigateTo('schedule', 2)">Continue ➔</button>
+        </div>
+    </section>
+
+    <section id="schedule" class="section">
+        <h2>Sport Schedule & Trainer</h2>
+        <div class="form-card">
+            <select id="sTime">
+                <option value="Morning">Morning</option>
+                <option value="Afternoon">Afternoon</option>
+                <option value="Evening">Evening</option>
+            </select>
+            <select id="sSport" onchange="showWorkoutPlan()">
+                <option value="" disabled selected>-- Select a Sport --</option>
+                <option value="Gym">Gym (Weightlifting)</option>
+                <option value="Football">Football</option>
+                <option value="Running">Running</option>
+                <option value="Swimming">Swimming</option>
+                <option value="Cycling">Cycling</option>
+                <option value="Yoga">Yoga</option>
+                <option value="Basketball">Basketball</option>
+                <option value="Tennis">Tennis</option>
+                <option value="Boxing">Boxing</option>
+                <option value="Weightlifting">Olympic Weightlifting</option>
+                <option value="Calisthenics">Calisthenics</option>
+                <option value="HIIT">HIIT</option>
+            </select>
+            <button class="btn" onclick="addSchedule()">Save to Calendar</button>
+        </div>
+
+        <div id="workoutGuide" style="display:none; margin-bottom: 2rem;">
+            <h3 style="color: #38bdf8; margin-bottom: 1.5rem;" id="guideTitle">Workout Guide</h3>
+            <div id="guideContent"></div>
+        </div>
+
+        <div class="schedule-grid">
+            <div class="schedule-col"><h3>🌅 Morning</h3><div id="morningList"></div></div>
+            <div class="schedule-col"><h3>☀️ Afternoon</h3><div id="afternoonList"></div></div>
+            <div class="schedule-col"><h3>🌙 Evening</h3><div id="eveningList"></div></div>
+        </div>
+
+        <div class="nav-actions">
+            <button class="btn btn-back" onclick="navigateTo('workouts', 1)">⬅ Back</button>
+            <button class="btn btn-next" onclick="navigateTo('nutrition', 3)">Continue ➔</button>
+        </div>
+    </section>
+
+    <section id="nutrition" class="section">
+        <h2>Food Log</h2>
+        <div class="form-card">
+            <h3 style="margin-bottom: 1rem; color: #f8fafc;">Add Food (Auto-Calculates)</h3>
+            <select id="fMeal">
+                <option value="Breakfast">Breakfast</option>
+                <option value="Lunch">Lunch</option>
+                <option value="Dinner">Dinner</option>
+                <option value="Snack">Snack</option>
+            </select>
+            
+            <select id="fName" onchange="autoFillFood()">
+                <option value="" disabled selected>-- Select a Food --</option>
+                <option value="Chicken Breast (100g)">🍗 Chicken Breast</option>
+                <option value="Eggs (2 large)">🥚 Eggs</option>
+                <option value="Rice (1 cup cooked)">🍚 White Rice</option>
+                <option value="Oats (50g)">🥣 Oatmeal</option>
+                <option value="Banana (1 medium)">🍌 Banana</option>
+                <option value="Beef Steak (100g)">🥩 Beef Steak</option>
+                <option value="Salmon (100g)">🐟 Salmon</option>
+                <option value="Avocado (1 medium)">🥑 Avocado</option>
+                <option value="Whole Wheat Bread (1 slice)">🍞 Whole Wheat Bread</option>
+                <option value="Peanut Butter (1 tbsp)">🥜 Peanut Butter</option>
+            </select>
+
+            <div class="food-preview-container" id="foodPreview" style="display:none;">
+                <img id="foodImg" class="food-preview-img" src="" alt="Food Image">
+                <div class="food-preview-text">
+                    <strong id="previewName"></strong>
+                    <span id="previewMacros"></span>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:1rem;">
+                <input type="number" id="fCal" placeholder="Calories" readonly style="background:#334155;" />
+                <input type="number" id="fProt" placeholder="Protein g" readonly style="background:#334155;" />
+            </div>
+            <button class="btn" onclick="addFood()">Save Food</button>
+        </div>
+        <div class="table-card">
+            <h3 style="margin-bottom:1rem;">Food History</h3>
+            <table>
+                <thead><tr><th>Meal</th><th>Food</th><th>Calories</th><th>Protein</th><th>Action</th></tr></thead>
+                <tbody id="foodTable"></tbody>
+            </table>
+        </div>
+
+        <div class="nav-actions">
+            <button class="btn btn-back" onclick="navigateTo('schedule', 2)">⬅ Back</button>
+            <button class="btn btn-next" onclick="navigateTo('progress', 4)">Continue ➔</button>
+        </div>
+    </section>
+
+    <section id="progress" class="section">
+        <h2>Before & After Progress</h2>
+        <div class="form-card">
+            <input type="number" id="bStart" placeholder="Starting Weight (kg)" />
+            <input type="number" id="bCurrent" placeholder="Current Weight (kg)" />
+            <select id="bGoal">
+                <option value="Muscle Gain">Goal: Muscle Gain</option>
+                <option value="Fat Loss">Goal: Fat Loss</option>
+                <option value="Maintain">Goal: Maintain</option>
+            </select>
+            <button class="btn" onclick="saveProgress()">Analyze Progress</button>
+        </div>
+        <div class="table-card" id="progressDisplay" style="display:none; padding:2rem; border-left: 5px solid #f43f5e;">
+            <h3 style="font-size:1.5rem; margin-bottom:1rem; color:#f43f5e;">📊 Analysis</h3>
+            <p style="font-size:1.2rem; margin-bottom:1.5rem;" id="pDiff"></p>
+            <div style="background: rgba(56, 189, 248, 0.1); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #38bdf8;">
+                <h4 style="color: #38bdf8; margin-bottom: 0.5rem;">🥗 Nutrition (WHO)</h4>
+                <p id="pFood" style="line-height: 1.6; color: #cbd5e1;"></p>
+            </div>
+            <div style="background: rgba(34, 197, 94, 0.1); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e;">
+                <h4 style="color: #22c55e; margin-bottom: 0.5rem;">💧 Hydration</h4>
+                <p id="pWater" style="line-height: 1.6; color: #cbd5e1;"></p>
+            </div>
+        </div>
+
+        <div class="nav-actions">
+            <button class="btn btn-back" onclick="navigateTo('nutrition', 3)">⬅ Back</button>
+            <button class="btn btn-next" onclick="navigateTo('health', 5)">Continue ➔</button>
+        </div>
+    </section>
+
+    <section id="health" class="section">
+        <h2>Health & BMI Guide (Global Standards)</h2>
+        <div class="form-card">
+            <input type="number" id="hWeight" placeholder="Your Weight (kg)" />
+            <input type="number" id="hHeight" placeholder="Your Height (cm)" />
+            <button class="btn" onclick="calculateBMI()">Calculate BMI</button>
+        </div>
+
+        <div id="bmiDisplay" style="display: none;">
+            <div class="bmi-result" id="bmiResultBox">
+                <h1 id="bmiValue">0</h1>
+                <h3 id="bmiStatus">Normal</h3>
+            </div>
+            
+            <div class="daily-plan" style="border-left-color: #f43f5e;">
+                <h4 style="color: #f43f5e; margin-bottom: 0.5rem;">🏃‍♂️ Exercise (WHO 2020 Guidelines)</h4>
+                <ul id="exercisePlan" style="margin-left: 1.5rem; color: #cbd5e1; line-height: 1.8;"></ul>
+            </div>
+            <div class="daily-plan" style="border-left-color: #22c55e;">
+                <h4 style="color: #22c55e; margin-bottom: 0.5rem;">🥗 Food Essentials (WHO)</h4>
+                <ul id="nutritionPlan" style="margin-left: 1.5rem; color: #cbd5e1; line-height: 1.8;"></ul>
+            </div>
+        </div>
+
+        <div class="nav-actions">
+            <button class="btn btn-back" onclick="navigateTo('progress', 4)">⬅ Back</button>
+            <button class="btn btn-finish" onclick="navigateTo('dashboard', 0)">Finish & Go to Dashboard</button>
+        </div>
+    </section>
+</main>
+
+<div id="imageModal" class="modal" onclick="closeModal()">
+    <img id="modalImage" class="modal-content" src="" alt="Enlarged view">
+</div>
+
+<script>
+const API = 'http://localhost:8000'; // Change this to your Render URL after deployment
+const navButtons = document.querySelectorAll('.nav-btn');
+
+// REAL, DISTINCT IMAGES FOR EACH STEP OF EACH SPORT
+const images = {
+    'Gym_Warmup': 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=400&auto=format&fit=crop',
+    'Gym_Main': 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400&auto=format&fit=crop',
+    'Gym_Cool': 'https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=400&auto=format&fit=crop',
+    
+    'Football_Warmup': 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?q=80&w=400&auto=format&fit=crop',
+    'Football_Main': 'https://images.unsplash.com/photo-1574629810360-7efbb6e6d4e0?q=80&w=400&auto=format&fit=crop',
+    'Football_Cool': 'https://images.unsplash.com/photo-1526232761682-d26e03ac148e?q=80&w=400&auto=format&fit=crop',
+    
+    'Running_Warmup': 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?q=80&w=400&auto=format&fit=crop',
+    'Running_Main': 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?q=80&w=400&auto=format&fit=crop',
+    'Running_Cool': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=400&auto=format&fit=crop',
+    
+    'Swimming_Warmup': 'https://images.unsplash.com/photo-1530549387789-4c1017266635?q=80&w=400&auto=format&fit=crop',
+    'Swimming_Main': 'https://images.unsplash.com/photo-1519781542721-1a4b3a1ab18a?q=80&w=400&auto=format&fit=crop',
+    'Swimming_Cool': 'https://images.unsplash.com/photo-1560089000-7433a4ebbd64?q=80&w=400&auto=format&fit=crop',
+
+    'Cycling_Warmup': 'https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=400&auto=format&fit=crop',
+    'Cycling_Main': 'https://images.unsplash.com/photo-1484920274317-87885fcbc504?q=80&w=400&auto=format&fit=crop',
+    'Cycling_Cool': 'https://images.unsplash.com/photo-1502744688674-c619d1586c9e?q=80&w=400&auto=format&fit=crop',
+
+    'Yoga_Warmup': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=400&auto=format&fit=crop',
+    'Yoga_Main': 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?q=80&w=400&auto=format&fit=crop',
+    'Yoga_Cool': 'https://images.unsplash.com/photo-1588286840104-8957b019727f?q=80&w=400&auto=format&fit=crop',
+
+    'Basketball_Warmup': 'https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=400&auto=format&fit=crop',
+    'Basketball_Main': 'https://images.unsplash.com/photo-1519861531473-9200262188bf?q=80&w=400&auto=format&fit=crop',
+    'Basketball_Cool': 'https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?q=80&w=400&auto=format&fit=crop',
+
+    'Tennis_Warmup': 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=400&auto=format&fit=crop',
+    'Tennis_Main': 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=400&auto=format&fit=crop',
+    'Tennis_Cool': 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=400&auto=format&fit=crop',
+
+    'Boxing_Warmup': 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?q=80&w=400&auto=format&fit=crop',
+    'Boxing_Main': 'https://images.unsplash.com/photo-1509563268479-0f004cf3d4bd?q=80&w=400&auto=format&fit=crop',
+    'Boxing_Cool': 'https://images.unsplash.com/photo-1517438322307-e67111335449?q=80&w=400&auto=format&fit=crop',
+
+    'Weightlifting_Warmup': 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=400&auto=format&fit=crop',
+    'Weightlifting_Main': 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?q=80&w=400&auto=format&fit=crop',
+    'Weightlifting_Cool': 'https://images.unsplash.com/photo-1517344884509-a0c97ec11bcc?q=80&w=400&auto=format&fit=crop',
+
+    'Calisthenics_Warmup': 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=400&auto=format&fit=crop',
+    'Calisthenics_Main': 'https://images.unsplash.com/photo-1566241440091-ec10de8db2e1?q=80&w=400&auto=format&fit=crop',
+    'Calisthenics_Cool': 'https://images.unsplash.com/photo-1599058917765-a780eda07a3e?q=80&w=400&auto=format&fit=crop',
+
+    'HIIT_Warmup': 'https://images.unsplash.com/photo-1599058917765-a780eda07a3e?q=80&w=400&auto=format&fit=crop',
+    'HIIT_Main': 'https://images.unsplash.com/photo-1434682881908-b43d0467b798?q=80&w=400&auto=format&fit=crop',
+    'HIIT_Cool': 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=400&auto=format&fit=crop'
+};
+
+function navigateTo(sectionId, index) {
+    showSection(sectionId, navButtons[index]);
+}
+
+function showSection(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if(btn) btn.classList.add('active');
+    
+    if(id === 'dashboard') loadStats();
+    if(id === 'workouts') { loadWorkouts(); updateAdvisor(); }
+    if(id === 'schedule') loadSchedule();
+    if(id === 'nutrition') loadFood();
+    if(id === 'progress') loadProgress();
+}
+
+async function loadStats() {
+    const res = await fetch(`${API}/stats`);
+    const data = await res.json();
+    document.getElementById('stWorkouts').textContent = data.total_workouts;
+    document.getElementById('stVolume').textContent = data.total_volume + ' kg';
+    document.getElementById('stCalories').textContent = data.total_calories;
+    document.getElementById('stSize').textContent = data.db_size + ' KB';
+}
+
+function updateAdvisor() {
+    const type = document.getElementById('wType').value;
+    const content = document.getElementById('advisorContent');
+    if (type === 'Strength') content.innerHTML = `<p><strong>Strength (ACSM):</strong> 1.6-2.2g protein/kg. Eat whole grains and lean meats.</p>`;
+    else if (type === 'Cardio') content.innerHTML = `<p><strong>Cardio (WHO):</strong> Hydrate with water. Eat complex carbs (fruit) for energy.</p>`;
+    else content.innerHTML = `<p><strong>Flexibility:</strong> Focus on hydration and anti-inflammatory foods (nuts, fish).</p>`;
+}
+
+async function loadWorkouts() {
+    const res = await fetch(`${API}/workouts`);
+    const data = await res.json();
+    document.getElementById('workoutTable').innerHTML = data.map(w => `
+        <tr><td><span style="background:#334155; padding:2px 6px; border-radius:4px; font-size:0.8rem;">${w.workout_type}</span></td><td><strong>${w.exercise}</strong></td><td>${w.weight > 0 ? `${w.weight}kg x ${w.reps} x ${w.sets}` : `${w.duration} mins`}</td><td>${w.time_of_day}</td><td><button class="delete-btn" onclick="deleteWorkout(${w.id})">Delete</button></td></tr>
+    `).join('');
+}
+async function addWorkout() {
+    const body = { workout_type: document.getElementById('wType').value, exercise: document.getElementById('wExercise').value, weight: parseFloat(document.getElementById('wWeight').value) || 0, reps: parseInt(document.getElementById('wReps').value) || 0, sets: parseInt(document.getElementById('wSets').value) || 0, duration: parseInt(document.getElementById('wDuration').value) || 0, calories_burned: parseInt(document.getElementById('wCaloriesBurned').value) || 0, time_of_day: document.getElementById('wTime').value };
+    await fetch(`${API}/workouts`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+    loadWorkouts();
+}
+async function deleteWorkout(id) {
+    await fetch(`${API}/workouts/${id}`, { method: 'DELETE' });
+    loadWorkouts();
+}
+
+function showWorkoutPlan() {
+    const sport = document.getElementById('sSport').value;
+    const guideDiv = document.getElementById('workoutGuide');
+    const title = document.getElementById('guideTitle');
+    const content = document.getElementById('guideContent');
+    if (!sport) return;
+    guideDiv.style.display = 'block';
+    title.textContent = `🏋️ Step-by-Step Visual Guide: ${sport}`;
+
+    const imgWarmup = images[`${sport}_Warmup`] || images['Gym_Warmup'];
+    const imgMain = images[`${sport}_Main`] || images['Gym_Main'];
+    const imgCool = images[`${sport}_Cool`] || images['Gym_Cool'];
+
+    content.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+            <h4 style="color:#f43f5e; margin-bottom: 1rem;">🔥 Step 1: Warm-up (10-15 Mins)</h4>
+            <div class="exercise-card">
+                <img src="${imgWarmup}" class="exercise-img" onclick="openModal(this.src)" alt="Warmup">
+                <div class="exercise-info">
+                    <h4>Dynamic Preparation</h4>
+                    <p>Light cardio and dynamic stretching to prepare the joints and muscles for ${sport}.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <h4 style="color:#f8fafc; margin-bottom: 1rem;">💪 Step 2: Main ${sport} Training</h4>
+            <div class="exercise-card">
+                <img src="${imgMain}" class="exercise-img" onclick="openModal(this.src)" alt="Main Workout">
+                <div class="exercise-info">
+                    <h4>${sport} Drills & Performance</h4>
+                    <p>Execute the core movements, drills, or techniques specific to ${sport}.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <h4 style="color:#38bdf8; margin-bottom: 1rem;">❄️ Step 3: Cool-down & Recovery (5-10 Mins)</h4>
+            <div class="exercise-card">
+                <img src="${imgCool}" class="exercise-img" onclick="openModal(this.src)" alt="Cool Down">
+                <div class="exercise-info">
+                    <h4>Static Stretching</h4>
+                    <p>Slow down your heart rate and stretch the muscles used during ${sport}.</p>
+                </div>
+            </div>
+        </div>`;
+}
+
+async function loadSchedule() {
+    const res = await fetch(`${API}/schedule`);
+    const data = await res.json();
+    document.getElementById('morningList').innerHTML = '';
+    document.getElementById('afternoonList').innerHTML = '';
+    document.getElementById('eveningList').innerHTML = '';
+    data.forEach(s => {
+        const html = `<div class="schedule-item"><span>${s.sport}</span><button class="delete-btn" onclick="deleteSchedule(${s.id})">✕</button></div>`;
+        if (s.time_of_day === 'Morning') document.getElementById('morningList').innerHTML += html;
+        if (s.time_of_day === 'Afternoon') document.getElementById('afternoonList').innerHTML += html;
+        if (s.time_of_day === 'Evening') document.getElementById('eveningList').innerHTML += html;
+    });
+}
+async function addSchedule() {
+    const sport = document.getElementById('sSport').value;
+    if(!sport) return alert('Select a sport');
+    await fetch(`${API}/schedule`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ time_of_day: document.getElementById('sTime').value, sport: sport }) });
+    loadSchedule();
+}
+async function deleteSchedule(id) {
+    await fetch(`${API}/schedule/${id}`, { method: 'DELETE' });
+    loadSchedule();
+}
+
+// 100% CORRECTED FOOD IMAGES
+const foodDatabase = {
+    "Chicken Breast (100g)": { calories: 165, protein: 31, img: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=200&auto=format&fit=crop" },
+    "Eggs (2 large)": { calories: 143, protein: 12, img: "https://images.unsplash.com/photo-1525351484163-7529414344d8?w=200&auto=format&fit=crop" }, // CORRECT EGG IMAGE
+    "Rice (1 cup cooked)": { calories: 205, protein: 4, img: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200&auto=format&fit=crop" },
+    "Oats (50g)": { calories: 190, protein: 7, img: "https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=200&auto=format&fit=crop" },
+    "Banana (1 medium)": { calories: 105, protein: 1, img: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=200&auto=format&fit=crop" },
+    "Beef Steak (100g)": { calories: 271, protein: 26, img: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=200&auto=format&fit=crop" },
+    "Salmon (100g)": { calories: 208, protein: 20, img: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=200&auto=format&fit=crop" },
+    "Avocado (1 medium)": { calories: 240, protein: 3, img: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=200&auto=format&fit=crop" },
+    "Whole Wheat Bread (1 slice)": { calories: 80, protein: 4, img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200&auto=format&fit=crop" },
+    "Peanut Butter (1 tbsp)": { calories: 95, protein: 4, img: "https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?w=200&auto=format&fit=crop" }
+};
+
+function autoFillFood() {
+    const selectedFood = document.getElementById('fName').value;
+    const previewBox = document.getElementById('foodPreview');
+    
+    if (foodDatabase[selectedFood]) {
+        const data = foodDatabase[selectedFood];
+        document.getElementById('fCal').value = data.calories;
+        document.getElementById('fProt').value = data.protein;
+        
+        previewBox.style.display = 'flex';
+        document.getElementById('foodImg').src = data.img;
+        document.getElementById('previewName').textContent = selectedFood;
+        document.getElementById('previewMacros').textContent = `${data.calories} kcal | ${data.protein}g Protein`;
+    } else {
+        previewBox.style.display = 'none';
+    }
+}
+
+async function loadFood() {
+    const res = await fetch(`${API}/food`);
+    const data = await res.json();
+    document.getElementById('foodTable').innerHTML = data.map(f => `
+        <tr><td>${f.meal_type}</td><td><strong>${f.food_name}</strong></td><td>${f.calories} kcal</td><td>${f.protein} g</td><td><button class="delete-btn" onclick="deleteFood(${f.id})">Delete</button></td></tr>
+    `).join('');
+}
+async function addFood() {
+    const foodName = document.getElementById('fName').value;
+    if (!foodName) return alert('Please select a food');
+    await fetch(`${API}/food`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ meal_type: document.getElementById('fMeal').value, food_name: foodName, calories: parseInt(document.getElementById('fCal').value) || 0, protein: parseFloat(document.getElementById('fProt').value) || 0 }) });
+    document.getElementById('fName').value = '';
+    document.getElementById('fCal').value = '';
+    document.getElementById('fProt').value = '';
+    document.getElementById('foodPreview').style.display = 'none';
+    loadFood();
+}
+async function deleteFood(id) {
+    await fetch(`${API}/food/${id}`, { method: 'DELETE' });
+    loadFood();
+}
+
+async function loadProgress() {
+    const res = await fetch(`${API}/beforeafter`);
+    const data = await res.json();
+    if(data.starting_weight > 0) {
+        document.getElementById('bStart').value = data.starting_weight;
+        document.getElementById('bCurrent').value = data.current_weight;
+        document.getElementById('bGoal').value = data.goal;
+        analyzeProgress();
+    }
+}
+async function saveProgress() {
+    const start = parseFloat(document.getElementById('bStart').value);
+    const current = parseFloat(document.getElementById('bCurrent').value);
+    const goal = document.getElementById('bGoal').value;
+    if(isNaN(start) || isNaN(current)) return alert('Please enter valid weights');
+    await fetch(`${API}/beforeafter`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ starting_weight: start, current_weight: current, goal: goal }) });
+    analyzeProgress();
+}
+async function analyzeProgress() {
+    const start = parseFloat(document.getElementById('bStart').value);
+    const current = parseFloat(document.getElementById('bCurrent').value);
+    const goal = document.getElementById('bGoal').value;
+    if(isNaN(start) || isNaN(current)) return;
+    const res = await fetch(`${API}/progress-advice`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ starting_weight: start, current_weight: current, goal: goal }) });
+    const data = await res.json();
+    document.getElementById('progressDisplay').style.display = 'block';
+    const color = data.color === 'green' ? '#22c55e' : (data.color === 'red' ? '#f43f5e' : '#38bdf8');
+    document.getElementById('pDiff').innerHTML = `You have <strong style="color:${color};">${data.status} ${data.difference} kg</strong> (from ${start}kg to ${current}kg).`;
+    const formatText = (text) => text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    document.getElementById('pFood').innerHTML = formatText(data.food_advice);
+    document.getElementById('pWater').innerHTML = formatText(data.water_advice);
+}
+
+function calculateBMI() {
+    const weight = parseFloat(document.getElementById('hWeight').value);
+    const heightCm = parseFloat(document.getElementById('hHeight').value);
+    if(!weight || !heightCm) return alert("Please enter weight and height");
+    const heightM = heightCm / 100;
+    const bmi = (weight / (heightM * heightM)).toFixed(1);
+    document.getElementById('bmiDisplay').style.display = 'block';
+    document.getElementById('bmiValue').textContent = bmi;
+    const box = document.getElementById('bmiResultBox');
+    const status = document.getElementById('bmiStatus');
+    const exPlan = document.getElementById('exercisePlan');
+    const nutPlan = document.getElementById('nutritionPlan');
+
+    if (bmi < 18.5) {
+        box.style.background = "rgba(56, 189, 248, 0.1)"; box.style.border = "1px solid #38bdf8";
+        status.textContent = "Underweight (<18.5)"; status.style.color = "#38bdf8";
+        exPlan.innerHTML = `<li><strong>WHO:</strong> Focus on strength training to build muscle, not just cardio.</li><li>Eat 300-500 extra calories daily.</li>`;
+        nutPlan.innerHTML = `<li><strong>WHO:</strong> Eat nutrient-dense foods. Protein: 1.6-2.2g/kg.</li><li><strong>Fats:</strong> <30% of energy. Limit free sugars to <10%.</li>`;
+    } else if (bmi >= 18.5 && bmi <= 24.9) {
+        box.style.background = "rgba(34, 197, 94, 0.1)"; box.style.border = "1px solid #22c55e";
+        status.textContent = "Normal (18.5 - 24.9)"; status.style.color = "#22c55e";
+        exPlan.innerHTML = `<li><strong>WHO:</strong> 150-300 mins moderate aerobic activity/week.</li><li><strong>WHO:</strong> Muscle-strengthening 2+ days/week.</li>`;
+        nutPlan.innerHTML = `<li><strong>WHO:</strong> Salt <5g/day, free sugars <10% (ideally <5%).</li><li><strong>Fats:</strong> <30% total energy. Prioritize unsaturated fats (fish, nuts).</li>`;
+    } else if (bmi >= 25 && bmi <= 29.9) {
+        box.style.background = "rgba(250, 204, 21, 0.1)"; box.style.border = "1px solid #facc15";
+        status.textContent = "Overweight (25 - 29.9)"; status.style.color = "#facc15";
+        exPlan.innerHTML = `<li><strong>WHO:</strong> Increase to 300+ mins moderate activity/week for weight loss.</li><li>Include 2+ days of strength training.</li>`;
+        nutPlan.innerHTML = `<li><strong>WHO:</strong> Strictly limit free sugars to <10%. Reduce salt to <5g/day.</li><li>Choose unsaturated fats over saturated (avoid fatty meats/butter).</li>`;
+    } else {
+        box.style.background = "rgba(244, 63, 94, 0.1)"; box.style.border = "1px solid #f43f5e";
+        status.textContent = "Obese (30+)"; status.style.color = "#f43f5e";
+        exPlan.innerHTML = `<li><strong>WHO:</strong> Start with low-impact activity (swimming, walking).</li><li>Consult a doctor before intense exercise.</li>`;
+        nutPlan.innerHTML = `<li><strong>WHO:</strong> Limit free sugars to <5% for extra benefit. Salt <5g/day.</li><li>Focus on whole foods: vegetables, legumes, whole grains.</li>`;
+    }
+}
+
+function openModal(imageSrc) {
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
+    modal.style.display = "flex";
+    modalImg.src = imageSrc;
+}
+
+function closeModal() {
+    document.getElementById('imageModal').style.display = "none";
+}
+
+loadStats();
+</script>
+</body>
+</html>
